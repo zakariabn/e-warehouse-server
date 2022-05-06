@@ -34,6 +34,7 @@ async function run() {
 
     // getting stock
     app.get("/stock", async (req, res) => {
+      console.log('stock get hit');
       const limit = parseInt(req.query.limit);
       const intChecker = /^[0-9]+$/;
 
@@ -49,14 +50,24 @@ async function run() {
       res.send(stock);
     });
 
+    // getting specific stock by id
+    app.get('/stock/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = {_id: ObjectId(id)};
+
+      const stock = await stockCollection.findOne(query);
+      res.send(stock);
+    })
+
     // creating a stock
     app.post("/stock", async (req, res) => {
       const newStock = req.body;
-      const { name, img, description, price, quantity, supplier_name, phone } =
+      const { name, img, description, price, type, quantity, supplier_name, phone } =
         newStock;
       /* expecting data formate
         {
           "name": "",
+          "type": "Fridge"
           "img": "",
           "description": "",
           "price": [38990, "tk"],
@@ -69,6 +80,7 @@ async function run() {
         name: `${name}`,
         img: `${img}`,
         description: `${description}`,
+        type: `${type}`,
         price: `${price}`,
         quantity: `${quantity}`,
         supplier_name: `${supplier_name}`,
@@ -79,7 +91,7 @@ async function run() {
       res.send(result)
     });
 
-    // editing stock
+    // updating stock information
     app.post("/stock/:id", async (req, res) => {
       const id = req.params.id;
       const quantity = req.body.quantity;
@@ -100,12 +112,6 @@ async function run() {
   }
 }
 run().catch(console.dir);
-
-client.connect((err) => {
-  const collection = client.db("test").collection("devices");
-  // perform actions on the collection object
-  client.close();
-});
 
 // listening
 app.listen(port, () => {
