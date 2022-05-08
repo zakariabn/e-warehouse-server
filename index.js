@@ -61,19 +61,21 @@ async function run() {
 
     // creating a stock
     app.post("/stock", async (req, res) => {
-      const newStock = req.body;
+      console.log('hited');
+      const newStock = req.body.stockInfo;
+      console.log(newStock);
       const { name, img, description, price, type, quantity, supplier_name, phone } =
         newStock;
       /* expecting data formate
         {
-          "name": "",
-          "type": "Fridge"
-          "img": "",
-          "description": "",
-          "price": [38990, "tk"],
-          "quantity": 10,
-          "supplier_name": "",
-          "phone": ""
+          name: "",
+        type: "",
+        img: "",
+        supplier_name: "",
+        price: [''],
+        quantity: 0,
+        phone: "",
+        description: "",
         }
       */
       const doc = {
@@ -81,7 +83,7 @@ async function run() {
         img: `${img}`,
         description: `${description}`,
         type: `${type}`,
-        price: `${price}`,
+        price: price,
         quantity: `${quantity}`,
         supplier_name: `${supplier_name}`,
         phone: `${phone}`,
@@ -89,24 +91,37 @@ async function run() {
 
       const result = await stockCollection.insertOne(doc);
       res.send(result)
+      
     });
 
-    // updating stock information
+    // updating stock quantity information
     app.post("/stock/:id", async (req, res) => {
       const id = req.params.id;
       const quantity = req.body.quantity;
-
-      const filter = { _id: ObjectId(id) };
-      const option = { upsert: true };
-
-      const updateDoc = {
-        $set: {
-          quantity: `${quantity}`,
-        },
-      };
-      const result = await stockCollection.updateOne(filter, updateDoc, option);
-      res.send(result);
+      
+      if(quantity) {
+        const filter = { _id: ObjectId(id) };
+        const option = { upsert: true };
+        const updateDoc = {
+          $set: {
+            quantity: `${quantity}`,
+          },
+        };
+        const result = await stockCollection.updateOne(filter, updateDoc, option);
+        res.send(result);
+      }
+      else{
+        res.status(402).send({message: 'quantity not found'})
+      }
     });
+    // deleting a stock
+    app.delete('/stock/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = {_id: ObjectId(id)};
+      const result = await stockCollection.deleteOne(query);
+      res.send(result);
+    })
+    
   } finally {
     // await client.close();
   }
