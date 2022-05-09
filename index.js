@@ -36,12 +36,15 @@ async function run() {
     app.get("/stock", async (req, res) => {
       console.log('stock get hit');
       const limit = parseInt(req.query.limit);
+      const email = req.query?.email;
       const intChecker = /^[0-9]+$/;
+      let  query = {};
 
-      const query = {};
+      if (email) {
+        query = {email: email}
+      }
       const cursor = stockCollection.find(query);
       let stock;
-
       if (intChecker.test(limit)) {
         stock = await cursor.limit(limit).toArray();
       } else {
@@ -64,11 +67,12 @@ async function run() {
       console.log('hited');
       const newStock = req.body.stockInfo;
       console.log(newStock);
-      const { name, img, description, price, type, quantity, supplier_name, phone } =
+      const { name, img, description, email, price, type, quantity, supplier_name, phone } =
         newStock;
       /* expecting data formate
         {
-          name: "",
+        name: "",
+        email: "",
         type: "",
         img: "",
         supplier_name: "",
@@ -80,8 +84,10 @@ async function run() {
       */
       const doc = {
         name: `${name}`,
+        email: `${email}`,
         img: `${img}`,
         description: `${description}`,
+        sold: `${0}`,
         type: `${type}`,
         price: price,
         quantity: `${quantity}`,
@@ -94,26 +100,31 @@ async function run() {
       
     });
 
-    // updating stock quantity information
-    app.post("/stock/:id", async (req, res) => {
+    // updating sold and quantity count
+    app.put("/stock/:id", async (req, res) => {
+      console.log('updating');
       const id = req.params.id;
+      const newSoldCount = req.body.soldCount;
       const quantity = req.body.quantity;
-      
-      if(quantity) {
-        const filter = { _id: ObjectId(id) };
-        const option = { upsert: true };
-        const updateDoc = {
+
+      const filter = {_id: ObjectId(id)}
+      const option = { upsert: true };
+
+      if (newSoldCount || quantity) {
+        const updateDock = {
           $set: {
+            sold : `${newSoldCount}`,
             quantity: `${quantity}`,
-          },
-        };
-        const result = await stockCollection.updateOne(filter, updateDoc, option);
+          }
+        }
+        const result = await stockCollection.updateOne(filter, updateDock, option);
         res.send(result);
       }
-      else{
-        res.status(402).send({message: 'quantity not found'})
+      else {
+        res.status(402).send({message: 'sold not found'})
       }
-    });
+    })
+
     // deleting a stock
     app.delete('/stock/:id', async (req, res) => {
       const id = req.params.id;
