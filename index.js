@@ -165,7 +165,7 @@ async function run() {
     })
 
     // getting blog by id
-    app.get('/blog', async (req, res) => {
+    app.get('/blog/:id', async (req, res) => {
       const id = req.params.id;
       const query = {_id: ObjectId(id)};
 
