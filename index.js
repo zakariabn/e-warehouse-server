@@ -30,6 +30,7 @@ async function run() {
     await client.connect();
     const database = client.db("warehouseManagement");
     const stockCollection = database.collection("stock");
+    const blogCollection = database.collection("blog");
     console.log("Successfully connected to DB");
 
     // getting stock
@@ -52,6 +53,28 @@ async function run() {
       }
       res.send(stock);
     });
+
+    // get bestSellingStock
+    app.get('/stock/best-seller', async (req, res) => {
+      const limit = parseInt(req.query.limit);
+      const validLimit = /^[0-9]+$/.test(limit);
+      
+      const  query = {};
+      const option = {
+        sort: { sold: -1 },
+      }
+      const cursor = stockCollection.find(query, option);
+
+
+      let bestSellingStock;
+      if (validLimit) {
+        bestSellingStock = await cursor.limit(limit).toArray();
+
+      }else {
+        bestSellingStock = await cursor.toArray();
+      }
+      res.send(bestSellingStock);
+    } )
 
     // getting specific stock by id
     app.get('/stock/:id', async (req, res) => {
@@ -87,10 +110,10 @@ async function run() {
         email: `${email}`,
         img: `${img}`,
         description: `${description}`,
-        sold: `${0}`,
+        sold: 0,
         type: `${type}`,
         price: price,
-        quantity: `${quantity}`,
+        quantity: quantity,
         supplier_name: `${supplier_name}`,
         phone: `${phone}`,
       };
@@ -113,8 +136,8 @@ async function run() {
       if (newSoldCount || quantity) {
         const updateDock = {
           $set: {
-            sold : `${newSoldCount}`,
-            quantity: `${quantity}`,
+            sold : newSoldCount,
+            quantity: quantity,
           }
         }
         const result = await stockCollection.updateOne(filter, updateDock, option);
@@ -131,6 +154,23 @@ async function run() {
       const query = {_id: ObjectId(id)};
       const result = await stockCollection.deleteOne(query);
       res.send(result);
+    })
+
+    // getting blogs
+    app.get('/blogs', async (req, res) => {
+      const query = {};
+      const cursor = blogCollection.find(query);
+      const blogs = await cursor.toArray();
+      res.send(blogs);
+    })
+
+    // getting blog by id
+    app.get('/blogs', async (req, res) => {
+      const id = req.params.id;
+      const query = {_id: ObjectId(id)};
+      
+      const blog = blogCollection.find(query);
+      res.send(blog);
     })
     
   } finally {
