@@ -157,7 +157,7 @@ async function run() {
     })
 
     // getting blogs
-    app.get('/blogs', async (req, res) => {
+    app.get('/blog', async (req, res) => {
       const query = {};
       const cursor = blogCollection.find(query);
       const blogs = await cursor.toArray();
@@ -165,10 +165,10 @@ async function run() {
     })
 
     // getting blog by id
-    app.get('/blogs', async (req, res) => {
+    app.get('/blog', async (req, res) => {
       const id = req.params.id;
       const query = {_id: ObjectId(id)};
-      
+
       const blog = blogCollection.find(query);
       res.send(blog);
     })
