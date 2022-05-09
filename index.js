@@ -169,7 +169,7 @@ async function run() {
       const id = req.params.id;
       const query = {_id: ObjectId(id)};
 
-      const blog = blogCollection.find(query);
+      const blog = await blogCollection.findOne(query);
       res.send(blog);
     })
     
